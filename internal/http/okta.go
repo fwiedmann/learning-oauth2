@@ -112,7 +112,7 @@ func (o *OktaAuthenticator) Login(rw http.ResponseWriter, r *http.Request) {
 	q.Add("client_id", o.clientID)
 	q.Add("response_type", "code")
 	q.Add("response_mode", "query")
-	q.Add("scope", "openid profile email")
+	q.Add("scope", "openid profile email groups")
 	q.Add("redirect_uri", "http://localhost:8080/authorization-code/callback")
 	q.Add("state", randomState)
 	q.Add("nonce", randomNonce)
@@ -250,7 +250,7 @@ func (o *OktaAuthenticator) verifyIDToken(t string, r *http.Request) (*verifier.
 
 func (o *OktaAuthenticator) verifyAccessToken(t string) (*verifier.Jwt, error) {
 	tv := map[string]string{}
-	tv["aud"] = "api://default"
+	tv["aud"] = "testing-client"
 	jv := verifier.JwtVerifier{
 		Issuer:           o.issuer,
 		ClaimsToValidate: tv,

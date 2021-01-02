@@ -1,6 +1,6 @@
 # learning-oauth2
 
-I want to learn how to use the oauth2 Authorization Code Flow for Go REST APIs. The example code is based on the [github.com/okta/samples-golang/tree/develop/okta-hosted-login](https://github.com/okta/samples-golang/tree/develop/okta-hosted-login) repository and modified for an production ready example.
+I want to learn how to use the oauth2 Authorization Code Flow in Go. The example code is based on the [github.com/okta/samples-golang/tree/develop/okta-hosted-login](https://github.com/okta/samples-golang/tree/develop/okta-hosted-login) repository and modified for an production ready example.
 
 
 ## OAUTH 2 / OIDC Authorization Code Flow
@@ -26,6 +26,31 @@ After a user successfully logged in, the issuer will redirect the user to the de
 - `code`: This is short living token which will be used to request the issuers `token endpoint` to issue an `access_token` and `ìd_token`.
 - `state`: This string has be the same as the `state` send in the previous request to the issuer. If the state values differs the auth flow should be aborted due to integrity is not given.
 
-When requesting the `token endpoint` of the issuer in order to get an `access_token` and `ìd_token` the following query parameter are required:
+When requesting the `token endpoint` of the issuer via a POST request in order to get an `access_token` and `ìd_token` the following headers & query parameter are required:
 
-- ``:
+- `grant_type` query parameter: The Authorization Code grant type is used by confidential and public clients to exchange an authorization code for an access token.
+- `code` query parameter: Its the short living token provided by the issuer. In combination with the `client_id` and `client_secret` the issuer can validate the request and is able to issue the correct `access_token` and `ìd_token` for the user.
+- `redirect_uri` parameter: The value of the redirect_uri parameter included in the original authentication request.
+- `Authorization Basic <CLIENT_ID:CLIENT_SECRET>` header: Setting a authorization header to verify the applications identity.
+- `Content-Type application/x-www-form-urlencoded` header: Tells the server to lookup the http query parameters for the required information
+
+On a successful request the issuer response with the `access_token`, `id_token` and other additional information:
+
+```go
+type Exchange struct {
+	Error            string `json:"error,omitempty"`
+	ErrorDescription string `json:"error_description,omitempty"`
+	AccessToken      string `json:"access_token,omitempty"`
+	TokenType        string `json:"token_type,omitempty"`
+	ExpiresIn        int    `json:"expires_in,omitempty"`
+	Scope            string `json:"scope,omitempty"`
+	IdToken          string `json:"id_token,omitempty"`
+}
+```
+
+### Token Validation
+
+Both received tokens have to validated by the server. Please read the following for more details:
+
+- [validate id tokens](https://auth0.com/docs/tokens/id-tokens/validate-id-tokens)
+- [validate access tokens](https://auth0.com/docs/tokens/access-tokens/validate-access-tokens)
