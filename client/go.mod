@@ -1,9 +1,10 @@
-module github.com/fwiedmann/learning-oauth2
+module github.com/fwiedmann/learning-oauth2/client
 
 go 1.15
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/fwiedmann/learning-oauth2 v0.0.0-20210102180749-3c5c63ca2a23
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/kr/pretty v0.1.0 // indirect

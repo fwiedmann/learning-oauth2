@@ -16,12 +16,12 @@ func InitServer(a Authenticator) *Server {
 			Addr:    ":8080",
 		},
 		Authenticator: a,
-		tpl:           template.Must(template.ParseGlob("internal/http/html/*")),
+		tpl:           template.Must(template.ParseGlob("client/internal/http/html/*")),
 	}
 
-	r.HandleFunc("/login", a.Login)
-	r.HandleFunc("/authorization-code/callback", a.CallbackHandler)
-	r.HandleFunc("/", s.rootHandler)
+	r.HandleFunc("/login", CorsMiddleware(a.Login))
+	r.HandleFunc("/authorization-code/callback", CorsMiddleware(a.CallbackHandler))
+	r.HandleFunc("/", CorsMiddleware(s.rootHandler))
 
 	return s
 }
@@ -49,4 +49,12 @@ type Server struct {
 
 func (s *Server) Listen() error {
 	return s.s.ListenAndServe()
+}
+
+func CorsMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		rw.Header().Set("Access-Control-Allow-Origin", "http://localhost:8080")
+		rw.Header().Set("Access-Control-Allow-Credentials", "true")
+		next.ServeHTTP(rw, r)
+	}
 }

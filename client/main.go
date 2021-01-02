@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/fwiedmann/learning-oauth2/internal/http"
+	"github.com/fwiedmann/learning-oauth2/client/internal/http"
 )
 
 func main() {
