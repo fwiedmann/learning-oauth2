@@ -75,13 +75,13 @@ func (o *OktaAuthenticator) IsAuthenticated(r *http.Request) bool {
 	return true
 }
 
-func (o *OktaAuthenticator) UserInfo(r *http.Request) UserInfo {
+func (o *OktaAuthenticator) UserInfo(r *http.Request) (UserInfo, error) {
 	m := make(map[string]string)
 
 	session, err := o.store.Get(r, oktaSessionStoreKey)
 
 	if err != nil || session.Values["access_token"] == nil || session.Values["access_token"] == "" {
-		return m
+		return m, err
 	}
 
 	reqUrl := o.issuer + "/v1/userinfo"
@@ -92,12 +92,20 @@ func (o *OktaAuthenticator) UserInfo(r *http.Request) UserInfo {
 	h.Add("Accept", "application/json")
 
 	client := &http.Client{}
-	resp, _ := client.Do(req)
-	body, _ := ioutil.ReadAll(resp.Body)
-	defer resp.Body.Close()
-	json.Unmarshal(body, &m)
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
 
-	return m
+	defer resp.Body.Close()
+	if err := json.Unmarshal(body, &m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (o *OktaAuthenticator) Login(rw http.ResponseWriter, r *http.Request) {
@@ -239,7 +247,6 @@ func (o *OktaAuthenticator) verifyIDToken(t string, r *http.Request) (*verifier.
 	}
 
 	result, err := jv.New().VerifyIdToken(t)
-
 	if err != nil {
 		return nil, fmt.Errorf("%s", err)
 	}
@@ -260,7 +267,6 @@ func (o *OktaAuthenticator) verifyAccessToken(t string) (*verifier.Jwt, error) {
 	}
 
 	result, err := jv.New().VerifyAccessToken(t)
-
 	if err != nil {
 		return nil, fmt.Errorf("%s", err)
 	}

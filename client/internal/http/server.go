@@ -8,15 +8,14 @@ import (
 )
 
 func InitServer(a Authenticator) *Server {
-
 	r := mux.NewRouter()
 	s := &Server{
 		s: &http.Server{
 			Handler: r,
 			Addr:    ":8080",
 		},
-		Authenticator: a,
-		tpl:           template.Must(template.ParseGlob("client/internal/http/html/*")),
+		auth: a,
+		tpl:  template.Must(template.ParseGlob("client/internal/http/html/*")),
 	}
 
 	r.HandleFunc("/login", CorsMiddleware(a.Login))
@@ -33,18 +32,22 @@ type customData struct {
 
 func (s *Server) rootHandler(rw http.ResponseWriter, r *http.Request) {
 	var data customData
-	data.IsAuthenticated = s.Authenticator.IsAuthenticated(r)
+	data.IsAuthenticated = s.auth.IsAuthenticated(r)
 	if data.IsAuthenticated {
-		data.DisplayName = s.Authenticator.UserInfo(r)["name"]
+		info, err := s.auth.UserInfo(r)
+		if err != nil {
+			http.Error(rw, "could not fetch user Information", http.StatusInternalServerError)
+		}
+		data.DisplayName = info["name"]
 	}
 
 	s.tpl.ExecuteTemplate(rw, "root.html", data)
 }
 
 type Server struct {
-	s *http.Server
-	Authenticator
-	tpl *template.Template
+	s    *http.Server
+	auth Authenticator
+	tpl  *template.Template
 }
 
 func (s *Server) Listen() error {
