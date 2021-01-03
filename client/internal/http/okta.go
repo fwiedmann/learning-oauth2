@@ -14,6 +14,11 @@ import (
 	verifier "github.com/okta/okta-jwt-verifier-golang"
 )
 
+const (
+	oktaSessionStoreKey = "okta-hosted-login-session-store"
+	oktaSessionStateKey = "okta-hosted-login-state"
+)
+
 func NewOktaAuthenticator(clientID, clientSecret, issuer, cookieEncryptionKey string) *OktaAuthenticator {
 	store := sessions.NewCookieStore([]byte(cookieEncryptionKey))
 	store.Options.HttpOnly = true
@@ -33,7 +38,7 @@ type OktaAuthenticator struct {
 }
 
 func (o *OktaAuthenticator) IsAuthenticated(r *http.Request) bool {
-	s, err := o.store.Get(r, "okta-hosted-login-session-store")
+	s, err := o.store.Get(r, oktaSessionStoreKey)
 	if err != nil {
 		panic(err)
 	}
@@ -73,7 +78,7 @@ func (o *OktaAuthenticator) IsAuthenticated(r *http.Request) bool {
 func (o *OktaAuthenticator) UserInfo(r *http.Request) UserInfo {
 	m := make(map[string]string)
 
-	session, err := o.store.Get(r, "okta-hosted-login-session-store")
+	session, err := o.store.Get(r, oktaSessionStoreKey)
 
 	if err != nil || session.Values["access_token"] == nil || session.Values["access_token"] == "" {
 		return m
@@ -100,7 +105,7 @@ func (o *OktaAuthenticator) Login(rw http.ResponseWriter, r *http.Request) {
 
 	randomState := generateRandomStrings(10)
 	randomNonce := generateRandomStrings(10)
-	session, _ := o.store.Get(r, "okta-hosted-login-state")
+	session, _ := o.store.Get(r, oktaSessionStateKey)
 	session.Values["state"] = randomState
 	session.Values["nonce"] = randomNonce
 
@@ -122,9 +127,7 @@ func (o *OktaAuthenticator) Login(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (o *OktaAuthenticator) CallbackHandler(rw http.ResponseWriter, r *http.Request) {
-	// Check the state that was returned in the query string is the same as the above state
-
-	stateSession, _ := o.store.Get(r, "okta-hosted-login-state")
+	stateSession, _ := o.store.Get(r, oktaSessionStateKey)
 
 	if r.URL.Query().Get("state") != stateSession.Values["state"] {
 		http.Error(rw, "The state was not as expected", http.StatusInternalServerError)
