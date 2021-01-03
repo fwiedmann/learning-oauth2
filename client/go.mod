@@ -4,7 +4,6 @@ go 1.15
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/fwiedmann/learning-oauth2/backend v0.0.0-20210103182752-79951fe4a780
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/kr/pretty v0.1.0 // indirect
