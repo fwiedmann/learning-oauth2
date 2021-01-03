@@ -9,7 +9,12 @@
 <h1>Learning Oauth2/OIDC</h1>
 
 {{if .IsAuthenticated}}
-<p>Hello <em>{{ .DisplayName }}</em>, thanks for visiting</p>
+<p>Hello <b><em>{{ .DisplayName }}</em></b>, thanks for visiting.</p>
+
+<p>This is your current <b>Access Token</b>:<br>{{ .AccessToken }}<br></p>
+<p>This is your current <b>ID Token</b>:<br>{{ .IDToken }}<br></p>
+<p>This is your current <b>User Info</b>:<br>{{ .UserInfo }}<br></p>
+
 {{else}}
 <a href="http://localhost:8080/login">Login</a>
 {{end}}

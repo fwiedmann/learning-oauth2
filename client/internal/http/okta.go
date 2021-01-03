@@ -76,12 +76,10 @@ func (o *OktaAuthenticator) IsAuthenticated(r *http.Request) bool {
 }
 
 func (o *OktaAuthenticator) UserInfo(r *http.Request) (UserInfo, error) {
-	m := make(map[string]string)
-
 	session, err := o.store.Get(r, oktaSessionStoreKey)
 
 	if err != nil || session.Values["access_token"] == nil || session.Values["access_token"] == "" {
-		return m, err
+		return UserInfo{}, err
 	}
 
 	reqUrl := o.issuer + "/v1/userinfo"
@@ -94,18 +92,20 @@ func (o *OktaAuthenticator) UserInfo(r *http.Request) (UserInfo, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return UserInfo{}, err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return UserInfo{}, err
 	}
 
+	fmt.Print(string(body))
 	defer resp.Body.Close()
-	if err := json.Unmarshal(body, &m); err != nil {
-		return nil, err
+	var info UserInfo
+	if err := json.Unmarshal(body, &info); err != nil {
+		return UserInfo{}, err
 	}
-	return m, nil
+	return info, nil
 }
 
 func (o *OktaAuthenticator) Login(rw http.ResponseWriter, r *http.Request) {
@@ -276,6 +276,22 @@ func (o *OktaAuthenticator) verifyAccessToken(t string) (*verifier.Jwt, error) {
 	}
 
 	return nil, fmt.Errorf("token could not be verified: %s", "")
+}
+
+func (o *OktaAuthenticator) GetAccessToken(r *http.Request) (string, error) {
+	stateSession, err := o.store.Get(r, oktaSessionStoreKey)
+	if err != nil {
+		return "", err
+	}
+	return stateSession.Values["access_token"].(string), err
+}
+
+func (o *OktaAuthenticator) GetIDToken(r *http.Request) (string, error) {
+	stateSession, err := o.store.Get(r, oktaSessionStoreKey)
+	if err != nil {
+		return "", err
+	}
+	return stateSession.Values["id_token"].(string), err
 }
 
 var letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

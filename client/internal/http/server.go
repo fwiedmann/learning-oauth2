@@ -28,19 +28,38 @@ func InitServer(a Authenticator) *Server {
 type customData struct {
 	IsAuthenticated bool
 	DisplayName     string
+	AccessToken     string
+	IDToken         string
+	UserInfo        UserInfo
 }
 
 func (s *Server) rootHandler(rw http.ResponseWriter, r *http.Request) {
 	var data customData
 	data.IsAuthenticated = s.auth.IsAuthenticated(r)
-	if data.IsAuthenticated {
-		info, err := s.auth.UserInfo(r)
-		if err != nil {
-			http.Error(rw, "could not fetch user Information", http.StatusInternalServerError)
-		}
-		data.DisplayName = info["name"]
+	if !data.IsAuthenticated {
+		s.tpl.ExecuteTemplate(rw, "root.html", data)
+		return
 	}
 
+	info, err := s.auth.UserInfo(r)
+	if err != nil {
+		http.Error(rw, "could not fetch user Information: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	data.UserInfo = info
+	data.DisplayName = info.Name
+
+	accessToken, err := s.auth.GetAccessToken(r)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+	}
+	data.AccessToken = accessToken
+
+	idToken, err := s.auth.GetIDToken(r)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+	}
+	data.IDToken = idToken
 	s.tpl.ExecuteTemplate(rw, "root.html", data)
 }
 
