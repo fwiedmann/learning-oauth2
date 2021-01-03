@@ -7,5 +7,5 @@ import (
 )
 
 func main() {
-	panic(http.InitServer(http.NewOktaAuthenticator(os.Getenv("OKTA_CLIENT_ID"), os.Getenv("OKTA_CLIENT_SECRET"), os.Getenv("OKTA_ISSUER"), os.Getenv("ENCRYPTION_KEY"))).Listen())
+	panic(http.InitServer(os.Getenv("BACKEND_URL"), http.NewOktaAuthenticator(os.Getenv("OKTA_CLIENT_ID"), os.Getenv("OKTA_CLIENT_SECRET"), os.Getenv("OKTA_ISSUER"), os.Getenv("ENCRYPTION_KEY"))).Listen())
 }

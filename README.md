@@ -3,6 +3,23 @@
 I want to learn how to use the oauth2 Authorization Code Flow in Go. The example code is based on the [github.com/okta/samples-golang/tree/develop/okta-hosted-login](https://github.com/okta/samples-golang/tree/develop/okta-hosted-login) repository and modified for an production ready example.
 
 
+## Run
+
+Follow these steps to run the example client + backend on your localhost:
+
+1. [Okta prerequisites ](https://github.com/okta/samples-golang/tree/develop/okta-hosted-login#prerequisites)
+2. Set the `Audience` in your OKTA Authorization server to `testing-client` (under <your-okta-url>/admin/oauth2/as)
+2. Create an `.env` file in the root dir of the project with the following variables:
+    ```env
+    OKTA_CLIENT_ID=
+    OKTA_CLIENT_SECRET=
+    OKTA_ISSUER=
+    BACKEND_URL=http://backend:8081
+    ENCRYPTION_KEY=fyjt3DYF
+    ```
+    Note that you can find the issuer URI on the `<your-okta-url>/admin/oauth2/as` page
+3. Build and run via docker-compose `docker-compose up --build`
+
 ## OAUTH 2 / OIDC Authorization Code Flow
 
 ### Login

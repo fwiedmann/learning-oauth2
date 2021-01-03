@@ -9,15 +9,27 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func InitServer(a Authenticator) *Server {
+type Server struct {
+	s          *http.Server
+	auth       Authenticator
+	tpl        *template.Template
+	backendURL string
+}
+
+func (s *Server) Listen() error {
+	return s.s.ListenAndServe()
+}
+
+func InitServer(backendURL string, a Authenticator) *Server {
 	r := mux.NewRouter()
 	s := &Server{
 		s: &http.Server{
 			Handler: r,
 			Addr:    ":8080",
 		},
-		auth: a,
-		tpl:  template.Must(template.ParseGlob("client/internal/http/html/*")),
+		auth:       a,
+		tpl:        template.Must(template.ParseGlob("client/internal/http/html/*")),
+		backendURL: backendURL,
 	}
 
 	r.HandleFunc("/login", CorsMiddleware(a.Login))
@@ -66,7 +78,7 @@ func (s *Server) rootHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 	data.IDToken = idToken
 
-	books, err := listBooks(accessToken)
+	books, err := s.listBooks(s.backendURL, accessToken)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
@@ -82,8 +94,8 @@ type Book struct {
 	Name string `json:"name"`
 }
 
-func listBooks(auth string) ([]Book, error) {
-	r, err := http.NewRequest(http.MethodGet, "http://localhost:8081/books", nil)
+func (s *Server) listBooks(backendURL, auth string) ([]Book, error) {
+	r, err := http.NewRequest(http.MethodGet, backendURL+"/books", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -107,16 +119,6 @@ func listBooks(auth string) ([]Book, error) {
 		return nil, err
 	}
 	return books, nil
-}
-
-type Server struct {
-	s    *http.Server
-	auth Authenticator
-	tpl  *template.Template
-}
-
-func (s *Server) Listen() error {
-	return s.s.ListenAndServe()
 }
 
 func CorsMiddleware(next http.HandlerFunc) http.HandlerFunc {
