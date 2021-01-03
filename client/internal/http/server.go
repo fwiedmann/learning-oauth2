@@ -1,6 +1,8 @@
 package http
 
 import (
+	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
 
@@ -31,6 +33,7 @@ type customData struct {
 	AccessToken     string
 	IDToken         string
 	UserInfo        UserInfo
+	Books           []Book
 }
 
 func (s *Server) rootHandler(rw http.ResponseWriter, r *http.Request) {
@@ -52,15 +55,58 @@ func (s *Server) rootHandler(rw http.ResponseWriter, r *http.Request) {
 	accessToken, err := s.auth.GetAccessToken(r)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	data.AccessToken = accessToken
 
 	idToken, err := s.auth.GetIDToken(r)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	data.IDToken = idToken
+
+	books, err := listBooks(accessToken)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data.Books = books
+
 	s.tpl.ExecuteTemplate(rw, "root.html", data)
+}
+
+type Book struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+func listBooks(auth string) ([]Book, error) {
+	r, err := http.NewRequest(http.MethodGet, "http://localhost:8081/books", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	r.Header.Add("Authorization", "Bearer "+auth)
+	r.Header.Add("Accept", "application/json")
+
+	c := &http.Client{}
+	resp, err := c.Do(r)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("response code of backend is not 200: %d", resp.StatusCode)
+	}
+
+	var books []Book
+	if err := json.NewDecoder(resp.Body).Decode(&books); err != nil {
+		return nil, err
+	}
+	return books, nil
 }
 
 type Server struct {

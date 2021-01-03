@@ -15,6 +15,19 @@
 <p>This is your current <b>ID Token</b>:<br>{{ .IDToken }}<br></p>
 <p>This is your current <b>User Info</b>:<br>{{ .UserInfo }}<br></p>
 
+
+{{ if gt (len .Books) 0 }}
+
+<h2>Books received from the backend with access_token</h2>
+<ul>
+    {{ range $book := .Books }}
+    <li>ID: <b>{{ $book.ID}}</b> Name: <b>{{ $book.Name }}</b></li>
+    {{ end }}
+</ul>
+
+{{ end }}
+
+
 {{else}}
 <a href="http://localhost:8080/login">Login</a>
 {{end}}
