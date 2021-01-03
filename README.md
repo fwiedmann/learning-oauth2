@@ -7,7 +7,7 @@ I want to learn how to use the oauth2 Authorization Code Flow in Go. The example
 
 ### Login
 
-When an user try's to login the redirect the user to the OIDC Providers (also called issue) login page. In the redirect the app adds required information into the query of the http redirect request.
+The first step of the Authorization Code Flow is to redirect the user to the OIDC provider (also called the issuer) login page. Your application has to send the following required parameters in order to proceed the login.
 
 These are the query parameters:
 
