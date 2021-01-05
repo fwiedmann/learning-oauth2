@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -42,6 +43,11 @@ func checkIsAuthenticated(next http.HandlerFunc) http.HandlerFunc {
 			http.Error(rw, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 			return
 		}
+
+		if !tokenHasRequiredGroups(auth, "Everyone", "Admin") {
+			http.Error(rw, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+			return
+		}
 		next.ServeHTTP(rw, r)
 	}
 }
@@ -58,4 +64,35 @@ func listBooks(rw http.ResponseWriter, _ *http.Request) {
 	}
 
 	json.NewEncoder(rw).Encode(books)
+}
+
+type Payload struct {
+	Groups []string `json:"groups"`
+}
+
+func tokenHasRequiredGroups(token string, groups ...string) bool {
+	s := strings.Split(token, ".")[1]
+	payload, err := base64.RawURLEncoding.DecodeString(s)
+	if err != nil {
+		return false
+	}
+
+	var pl Payload
+	if err := json.Unmarshal(payload, &pl); err != nil {
+		return false
+	}
+
+	for _, group := range groups {
+		var found bool
+		for _, plGroup := range pl.Groups {
+			if group == plGroup {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+	}
+	return true
 }

@@ -75,7 +75,11 @@ func (s *Server) rootHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 	data.AccessToken = accessToken
 
-	atPayload, _ := base64.URLEncoding.DecodeString(strings.Split(accessToken, ".")[1])
+	atPayload, err := base64.RawURLEncoding.DecodeString(strings.Split(accessToken, ".")[1])
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	data.AccessTokenPayload = string(atPayload)
 
 	idToken, err := s.auth.GetIDToken(r)
@@ -85,7 +89,11 @@ func (s *Server) rootHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 	data.IDToken = idToken
 
-	idtPayload, err := base64.URLEncoding.DecodeString(strings.Split(idToken, ".")[1])
+	idtPayload, err := base64.RawURLEncoding.DecodeString(strings.Split(idToken, ".")[1])
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	data.IDTokenPayload = string(idtPayload)
 
 	books, err := s.listBooks(s.backendURL, accessToken)

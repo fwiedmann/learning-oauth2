@@ -9,7 +9,9 @@ Follow these steps to run the example client + backend on your localhost:
 
 1. [Okta prerequisites ](https://github.com/okta/samples-golang/tree/develop/okta-hosted-login#prerequisites)
 2. Set the `Audience` in your OKTA Authorization server to `testing-client` (under <your-okta-url>/admin/oauth2/as)
-2. Create an `.env` file in the root dir of the project with the following variables:
+3. Create a new scope in your OKTA Authorization server called groups, add a new claim for the access token which maps the user groups into the token.
+4. Create a new Group called `Admin` and assign your user to it.
+5. Create an `.env` file in the root dir of the project with the following variables:
     ```env
     OKTA_CLIENT_ID=
     OKTA_CLIENT_SECRET=
@@ -18,7 +20,7 @@ Follow these steps to run the example client + backend on your localhost:
     ENCRYPTION_KEY=fyjt3DYF
     ```
     Note that you can find the issuer URI on the `<your-okta-url>/admin/oauth2/as` page
-3. Build and run via docker-compose `docker-compose up --build`
+6. Build and run via docker-compose `docker-compose up --build`
 
 ## OAUTH 2 / OIDC Authorization Code Flow
 
