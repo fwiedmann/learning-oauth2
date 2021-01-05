@@ -1,10 +1,12 @@
 package http
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -40,12 +42,14 @@ func InitServer(backendURL string, a Authenticator) *Server {
 }
 
 type customData struct {
-	IsAuthenticated bool
-	DisplayName     string
-	AccessToken     string
-	IDToken         string
-	UserInfo        UserInfo
-	Books           []Book
+	IsAuthenticated    bool
+	DisplayName        string
+	AccessToken        string
+	AccessTokenPayload string
+	IDToken            string
+	IDTokenPayload     string
+	UserInfo           UserInfo
+	Books              []Book
 }
 
 func (s *Server) rootHandler(rw http.ResponseWriter, r *http.Request) {
@@ -71,12 +75,18 @@ func (s *Server) rootHandler(rw http.ResponseWriter, r *http.Request) {
 	}
 	data.AccessToken = accessToken
 
+	atPayload, _ := base64.URLEncoding.DecodeString(strings.Split(accessToken, ".")[1])
+	data.AccessTokenPayload = string(atPayload)
+
 	idToken, err := s.auth.GetIDToken(r)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	data.IDToken = idToken
+
+	idtPayload, err := base64.URLEncoding.DecodeString(strings.Split(idToken, ".")[1])
+	data.IDTokenPayload = string(idtPayload)
 
 	books, err := s.listBooks(s.backendURL, accessToken)
 	if err != nil {

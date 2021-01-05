@@ -11,9 +11,36 @@
 {{if .IsAuthenticated}}
 <p>Hello <b><em>{{ .DisplayName }}</em></b>, thanks for visiting.</p>
 
-<p>This is your current <b>Access Token</b>:<br>{{ .AccessToken }}<br></p>
-<p>This is your current <b>ID Token</b>:<br>{{ .IDToken }}<br></p>
-<p>This is your current <b>User Info</b>:<br>{{ .UserInfo }}<br></p>
+<h2> Access Token</h2>
+
+<h3>Received Access Token</h3>
+
+<p>{{ .AccessToken }}</p>
+
+<h3>Access Token Payload</h3>
+
+<pre>
+{{ .AccessTokenPayload }}
+</pre>
+
+
+
+<h2> ID Token</h2>
+
+<h3>Received ID Token</h3>
+
+<p>{{ .IDToken }}</p>
+
+<h3>ID Token Payload</h3>
+
+<pre>
+{{ .IDTokenPayload }}
+</pre>
+
+<p>This is your current <b>User Info</b><br></p>
+<pre>
+{{ .UserInfo }}
+</pre>
 
 
 {{ if gt (len .Books) 0 }}
